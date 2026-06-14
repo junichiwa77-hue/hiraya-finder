@@ -120,6 +120,11 @@
     text-transform:uppercase;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
   }
   .dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
+  .chip{
+    font-size:10px;letter-spacing:.08em;color:var(--accent);
+    background:var(--accent-soft);border-radius:2px;
+    padding:2px 6px;text-transform:none;
+  }
   .new{display:inline-flex;align-items:center;gap:5px;color:var(--accent);font-weight:700;letter-spacing:.14em}
   .new::before{content:"";width:7px;height:7px;background:var(--accent);display:inline-block}
   .name{
@@ -144,8 +149,10 @@
   .sources{margin-top:38px;padding-top:30px;border-top:3px double var(--line)}
   .sources h2{font-family:"Shippori Mincho",serif;font-weight:600;font-size:21px;margin-bottom:8px}
   .sources .note{font-size:13px;color:var(--muted);max-width:42em;line-height:1.75;margin-bottom:22px}
+  .srcgroup{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin:24px 0 2px;font-weight:700}
   .source-link{display:flex;align-items:center;gap:14px;padding:16px 2px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
   .source-link:first-of-type{border-top:1px solid var(--line)}
+  .srcgroup + .source-link{border-top:1px solid var(--line)}
   .source-link .nm{font-weight:700;font-size:15px;display:block}
   .source-link .ds{font-size:12px;color:var(--muted);margin-top:3px;display:block;line-height:1.5}
   .source-link .arrow{margin-left:auto;color:var(--muted);font-size:18px;transition:transform .2s,color .2s}
@@ -178,7 +185,7 @@
         </g>
       </svg>
       <h1 class="title">ひらや探し</h1>
-      <p class="lede">埼玉と宇都宮（栃木）の、中古・空き家の平屋を集めた個人用の一覧。物件サイト・空き家バンク・物件ファンを定期巡回して、新しく出たものを上に並べています。気が向いたときにのぞいてください。</p>
+      <p class="lede">埼玉と宇都宮（栃木）の、中古・空き家の平屋と古民家を集めた個人用の一覧。物件サイト・空き家バンク・物件ファンを定期巡回して、新しく出たものを上に並べています。気が向いたときにのぞいてください。</p>
       <div class="meta">
         <span><b id="count">—</b> 件</span>
         <span>最終更新 <b id="updated">—</b></span>
@@ -198,6 +205,15 @@
         </div>
       </div>
 
+      <div class="group" role="group" aria-label="種別">
+        <span class="lbl">種別</span>
+        <div class="pills" id="kind-pills">
+          <button class="pill" data-kind="all" aria-pressed="true">すべて</button>
+          <button class="pill" data-kind="平屋" aria-pressed="false">平屋</button>
+          <button class="pill" data-kind="古民家" aria-pressed="false">古民家</button>
+        </div>
+      </div>
+
       <div class="group">
         <span class="lbl">並び</span>
         <select id="sort" aria-label="並び順">
@@ -206,8 +222,6 @@
           <option value="price-desc">価格が高い順</option>
         </select>
       </div>
-
-      <label class="check"><input type="checkbox" id="hiraya-only" /> 平屋のみ</label>
 
       <div class="spacer"></div>
       <input class="search" id="search" type="search" placeholder="キーワードで絞る" aria-label="キーワード検索" />
@@ -219,8 +233,19 @@
 
     <section class="sources">
       <h2>手動で見るソース</h2>
-      <p class="note">JavaScriptで動くサイトや大手ポータルは自動巡回が難しいので、ここから直接ひらいて眺めてください。埼玉では秩父地域と北部地域が、平屋・空き家が比較的多めです。</p>
+      <p class="note">JavaScriptで動くサイトや大手ポータルは自動巡回が難しいので、ここから直接ひらいて眺めてください。平屋・古民家・空き家は、埼玉なら秩父・北部地域、栃木なら宇都宮周辺が比較的多めです。</p>
 
+      <h3 class="srcgroup">宇都宮・栃木</h3>
+      <a class="source-link" href="https://u-akiya.jp/" target="_blank" rel="noopener">
+        <span><span class="nm">宇都宮空き家・空き地バンク</span><span class="ds">宇都宮市の公式バンク。安価な物件や移住者向け物件が中心</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="source-link" href="https://www.tochitaku.or.jp/akiya/index.html" target="_blank" rel="noopener">
+        <span><span class="nm">栃木県 空き家バンクガイド</span><span class="ds">宇都宮・足利・栃木・佐野・鹿沼・日光・小山・真岡への総合案内</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <h3 class="srcgroup">埼玉</h3>
       <a class="source-link" href="https://chichibuakiyabank.com/property" target="_blank" rel="noopener">
         <span><span class="nm">ちちぶ空き家バンク｜物件一覧</span><span class="ds">秩父市・横瀬・皆野・長瀞・小鹿野。古民家や中古住宅が中心で約80件</span></span>
         <span class="arrow" aria-hidden="true">↗</span>
@@ -229,6 +254,8 @@
         <span><span class="nm">埼玉県｜市町村空き家バンク 窓口一覧</span><span class="ds">県内40以上のバンクへの総合案内。地域ごとに各市町のページへ飛べる</span></span>
         <span class="arrow" aria-hidden="true">↗</span>
       </a>
+
+      <h3 class="srcgroup">全国版（横断検索）</h3>
       <a class="source-link" href="https://www.homes.co.jp/akiyabank/" target="_blank" rel="noopener">
         <span><span class="nm">LIFULL HOME'S 空き家バンク</span><span class="ds">全国の自治体バンクを集約。エリアと種別で横断検索できる</span></span>
         <span class="arrow" aria-hidden="true">↗</span>
@@ -253,33 +280,41 @@ const SAMPLE_DATA = {
   updated: "2026-06-13T22:10:00+09:00",
   items: [
     { id:"akiya-utsunomiya-0431", title:"宇都宮市郊外、畑つき平屋の空き家", url:"https://example.com/1",
-      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"宇都宮市空き家バンク",
-      price:null, note:"応相談", area_m2:78, layout:"4K", built:1981, hiraya:true,
+      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"宇都宮空き家バンク",
+      price:null, note:"応相談", area_m2:78, layout:"4K", built:1981, tags:["平屋"],
+      first_seen:"2026-06-12T09:00:00+09:00", image:null },
+    { id:"akiya-utsunomiya-0588", title:"宇都宮 茅葺きの古民家（2階建て・要DIY）", url:"https://example.com/7",
+      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"宇都宮空き家バンク",
+      price:290, area_m2:118, layout:"6DK", built:1955, tags:["古民家"],
       first_seen:"2026-06-12T09:00:00+09:00", image:null },
     { id:"suumo-saitama-99213", title:"さいたま市見沼区 平屋戸建て リノベ済", url:"https://example.com/2",
       area:"埼玉", city:"埼玉県さいたま市見沼区", source:"SUUMO",
-      price:1980, area_m2:71, layout:"2LDK", built:1998, hiraya:true,
+      price:1980, area_m2:71, layout:"2LDK", built:1998, tags:["平屋"],
       first_seen:"2026-06-11T14:30:00+09:00", image:null },
     { id:"bukkenfan-7781", title:"静かな林のそばに建つ、低い屋根の住まい", url:"https://example.com/3",
       area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"物件ファン",
-      price:1450, area_m2:92, layout:"3DK", built:1975, hiraya:true,
+      price:1450, area_m2:92, layout:"3DK", built:1975, tags:["平屋"],
       first_seen:"2026-06-09T08:00:00+09:00", image:null },
     { id:"akiya-chichibu-0220", title:"秩父郡 古民家風の平屋（要修繕）", url:"https://example.com/4",
       area:"埼玉", city:"埼玉県秩父郡", source:"全国版空き家バンク",
-      price:380, area_m2:104, layout:"5DK", built:1968, hiraya:true,
+      price:380, area_m2:104, layout:"5DK", built:1968, tags:["平屋","古民家"],
       first_seen:"2026-06-02T10:00:00+09:00", image:null },
     { id:"homes-saitama-3120", title:"川越市 平屋＋庭、駐車2台", url:"https://example.com/5",
       area:"埼玉", city:"埼玉県川越市", source:"LIFULL HOME'S",
-      price:2480, area_m2:83, layout:"3LDK", built:2005, hiraya:true,
+      price:2480, area_m2:83, layout:"3LDK", built:2005, tags:["平屋"],
       first_seen:"2026-05-28T11:00:00+09:00", image:null },
+    { id:"akiya-chichibu-0612", title:"小鹿野町 蔵つき古民家（木造2階建て）", url:"https://example.com/8",
+      area:"埼玉", city:"埼玉県秩父郡小鹿野町", source:"ちちぶ空き家バンク",
+      price:480, area_m2:135, layout:"7DK", built:1962, tags:["古民家"],
+      first_seen:"2026-05-25T13:00:00+09:00", image:null },
     { id:"akiya-tochigi-5512", title:"宇都宮市内 平屋（土地65坪・即入居可）", url:"https://example.com/6",
       area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"アットホーム",
-      price:990, area_m2:69, layout:"3K", built:1989, hiraya:true,
+      price:990, area_m2:69, layout:"3K", built:1989, tags:["平屋"],
       first_seen:"2026-05-20T16:00:00+09:00", image:null }
   ]
 };
 
-const state = { area:"all", sort:"new", hiraya:false, q:"", data:{items:[],updated:null} };
+const state = { area:"all", sort:"new", kind:"all", q:"", data:{items:[],updated:null} };
 const list = document.getElementById("list");
 const WEEK = 7*24*60*60*1000;
 
@@ -304,7 +339,7 @@ function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">"
 function apply(){
   let xs = state.data.items.slice();
   if(state.area!=="all") xs = xs.filter(i=>i.area===state.area);
-  if(state.hiraya) xs = xs.filter(i=>i.hiraya!==false);
+  if(state.kind!=="all") xs = xs.filter(i=>(i.tags||[]).includes(state.kind));
   if(state.q){
     const q = state.q.toLowerCase();
     xs = xs.filter(i=>[i.title,i.city,i.source,i.layout].some(v=>(v||"").toLowerCase().includes(q)));
@@ -332,11 +367,13 @@ function render(xs){
       i.built ? `${i.built}年` : null,
       `取得 ${fmtDate(i.first_seen,false)}`
     ].filter(Boolean).map((f,idx)=> idx===0 ? f : `<span>${f}</span>`).join("");
+    const tags = (i.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("");
     return `<article class="item">
       ${thumb}
       <div class="body">
         <div class="eyebrow">
           <span>${esc(i.city||i.area)}</span><span class="dot"></span><span>${esc(i.source)}</span>
+          ${tags}
           ${isNew(i)?'<span class="new">NEW</span>':''}
         </div>
         <h2 class="name"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title)}</a></h2>
@@ -362,8 +399,13 @@ document.getElementById("area-pills").addEventListener("click",e=>{
   [...e.currentTarget.children].forEach(p=>p.setAttribute("aria-pressed", p===b));
   apply();
 });
+document.getElementById("kind-pills").addEventListener("click",e=>{
+  const b = e.target.closest(".pill"); if(!b) return;
+  state.kind = b.dataset.kind;
+  [...e.currentTarget.children].forEach(p=>p.setAttribute("aria-pressed", p===b));
+  apply();
+});
 document.getElementById("sort").addEventListener("change",e=>{state.sort=e.target.value;apply();});
-document.getElementById("hiraya-only").addEventListener("change",e=>{state.hiraya=e.target.checked;apply();});
 document.getElementById("search").addEventListener("input",e=>{state.q=e.target.value.trim();apply();});
 
 /* load */

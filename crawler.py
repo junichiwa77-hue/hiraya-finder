@@ -48,7 +48,12 @@ UA   = "hiraya-finder/1.0 (personal use; +https://github.com/)"
 REQUEST_GAP = 2.0   # 秒。掲載元に負荷をかけないため毎リクエスト後に待つ
 
 # 拾いたい条件
-HIRAYA_WORDS = ("平屋", "平家", "ひらや")
+# 種別ごとのキーワード。本文・タイトルに含まれていればそのタグを付ける。
+# どのタグも付かない物件は対象外として捨てる。
+TAG_WORDS = {
+    "平屋":   ("平屋", "平家", "ひらや"),
+    "古民家": ("古民家", "古民家風", "茅葺", "かやぶき", "旧家", "古家"),
+}
 SAITAMA_WORDS = ("埼玉", "さいたま", "川越", "秩父", "所沢", "熊谷", "春日部")
 TOCHIGI_WORDS = ("宇都宮", "栃木")
 
@@ -68,8 +73,10 @@ def classify_area(text: str) -> str | None:
     return None
 
 
-def looks_hiraya(text: str) -> bool:
-    return any(w in text for w in HIRAYA_WORDS)
+def match_tags(text: str) -> list[str]:
+    """本文から該当する種別タグ（平屋・古民家）を返す。空なら対象外。"""
+    return [tag for tag, words in TAG_WORDS.items()
+            if any(w in text for w in words)]
 
 
 # ---- アダプタ基底 -----------------------------------------------------
@@ -86,7 +93,7 @@ class Item:
     area_m2: float | None = None
     layout: str | None = None
     built: int | None = None
-    hiraya: bool = True
+    tags: list = field(default_factory=list)   # ["平屋"] / ["古民家"] / 両方
     image: str | None = None
 
 
@@ -112,7 +119,8 @@ class BukkenFanRSS(Adapter):
         for e in feed.entries:
             blob = f"{e.get('title','')} {e.get('summary','')}"
             area = classify_area(blob)
-            if not area or not looks_hiraya(blob):
+            tags = match_tags(blob)
+            if not area or not tags:      # エリア外、または平屋でも古民家でもない
                 continue
             out.append(Item(
                 id=f"bukkenfan-{abs(hash(e.link)) % 10**8}",
@@ -120,7 +128,7 @@ class BukkenFanRSS(Adapter):
                 url=e.link,
                 area=area,
                 source=self.name,
-                hiraya=True,
+                tags=tags,
             ))
         return out
 
@@ -150,11 +158,14 @@ class CityAkiyaBank(Adapter):
             title = title_el.get_text(strip=True)
             href  = link_el.get("href", "")
             url   = href if href.startswith("http") else self.base + href
+            tags  = match_tags(title)
+            if not tags:                  # 平屋でも古民家でもなければ捨てる
+                continue
             out.append(Item(
                 id=f"{self.name}-{abs(hash(url)) % 10**8}",
                 title=title, url=url, area=self.area,
                 source=self.name, city=self.city,
-                hiraya=looks_hiraya(title),
+                tags=tags,
             ))
         return out
 

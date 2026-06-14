@@ -37,7 +37,7 @@ GitHub Pages が docs/ を配信 → ブラウザで開く
 
 - **物件ファン**：公開RSS（`/feed/`）をキーワードで絞る。実装済み。
 - **自治体の空き家バンク**：`CityAkiyaBank` に一覧URLとCSSセレクタを入れて有効化。サイトごとに構造が違うので現物を見て調整する。
-- 拾う条件は `HIRAYA_WORDS` / `SAITAMA_WORDS` / `TOCHIGI_WORDS` で変更。
+- 拾う条件は `TAG_WORDS`（平屋・古民家のキーワード）/ `SAITAMA_WORDS` / `TOCHIGI_WORDS` で変更。平屋でも古民家でもない物件は対象外。
 
 ローカル実行：
 
