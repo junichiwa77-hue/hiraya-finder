@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ひらや探し — 埼玉と宇都宮の平屋・空き家</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#E9EAE3;
+    --surface:#F4F5EF;
+    --ink:#23261F;
+    --muted:#6E7065;
+    --line:#CBCCC1;
+    --accent:#4C6151;        /* 松葉色 — used only for live state */
+    --accent-soft:#DFE5DA;
+    --radius:3px;
+    --maxw:860px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+    font-weight:400;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+
+  /* ---------- masthead ---------- */
+  .masthead{padding:54px 0 28px}
+  .roofline{display:block;width:100%;max-width:340px;height:34px;margin-bottom:14px;color:var(--ink)}
+  .title{
+    font-family:"Shippori Mincho",serif;
+    font-weight:600;
+    font-size:clamp(34px,7vw,52px);
+    letter-spacing:.04em;
+    line-height:1.05;
+  }
+  .lede{
+    margin-top:14px;
+    color:var(--muted);
+    font-size:14px;
+    max-width:36em;
+    line-height:1.75;
+  }
+  .meta{
+    margin-top:20px;
+    display:flex;flex-wrap:wrap;gap:6px 18px;
+    font-size:12px;color:var(--muted);
+    letter-spacing:.06em;
+    font-variant-numeric:tabular-nums;
+  }
+  .meta b{font-weight:700;color:var(--ink)}
+
+  /* ---------- controls ---------- */
+  .controls{
+    position:sticky;top:0;z-index:5;
+    background:color-mix(in srgb,var(--paper) 90%,transparent);
+    backdrop-filter:saturate(140%) blur(8px);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:12px 0;
+  }
+  .controls .wrap{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}
+  .group{display:flex;align-items:baseline;gap:10px}
+  .group > .lbl{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .pills{display:flex;gap:4px}
+  .pill{
+    appearance:none;border:0;background:none;cursor:pointer;
+    font:inherit;font-size:13px;color:var(--muted);
+    padding:3px 2px;border-bottom:1.5px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  .pill:hover{color:var(--ink)}
+  .pill[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+  .pill:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+  .check{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--muted)}
+  .check input{accent-color:var(--accent);width:15px;height:15px}
+  .check:has(input:checked){color:var(--ink)}
+
+  select,.search{
+    font:inherit;font-size:13px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);padding:6px 10px;
+  }
+  .search{min-width:0;flex:1 1 130px;max-width:220px}
+  select:focus-visible,.search:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .spacer{flex:1}
+
+  /* ---------- list ---------- */
+  .list{padding:6px 0 80px}
+  .item{
+    display:flex;gap:18px;align-items:flex-start;
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .item:first-child{border-top:1px solid var(--line)}
+  .thumb{
+    flex:0 0 132px;width:132px;aspect-ratio:4/3;
+    border-radius:var(--radius);overflow:hidden;
+    background:var(--accent-soft);position:relative;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  /* low-roof house silhouette placeholder */
+  .thumb.ph::after{
+    content:"";position:absolute;inset:0;
+    background:
+      no-repeat center 62% / 56% 30%
+      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 48"><g fill="none" stroke="%23A6AE9C" stroke-width="2.4" stroke-linejoin="round"><path d="M6 26 L50 8 L94 26"/><path d="M14 26 V42 H86 V26"/><path d="M44 42 V31 H56 V42"/></g></svg>');
+  }
+  .body{flex:1;min-width:0}
+  .eyebrow{
+    font-size:11px;letter-spacing:.1em;color:var(--muted);
+    text-transform:uppercase;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  }
+  .dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
+  .new{display:inline-flex;align-items:center;gap:5px;color:var(--accent);font-weight:700;letter-spacing:.14em}
+  .new::before{content:"";width:7px;height:7px;background:var(--accent);display:inline-block}
+  .name{
+    font-family:"Shippori Mincho",serif;font-weight:500;
+    font-size:19px;line-height:1.4;margin:5px 0 9px;
+  }
+  .name a{color:inherit;text-decoration:none;background-image:linear-gradient(var(--ink),var(--ink));
+    background-size:0% 1px;background-repeat:no-repeat;background-position:0 100%;transition:background-size .25s}
+  .name a:hover,.name a:focus-visible{background-size:100% 1px;outline:none}
+  .data{
+    display:flex;flex-wrap:wrap;gap:4px 14px;
+    font-size:13px;color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .data .price{color:var(--ink);font-weight:700;font-size:15px}
+  .data .price.tba{font-weight:500;font-size:13px;color:var(--muted)}
+
+  /* ---------- empty ---------- */
+  .empty{padding:70px 0;text-align:center;color:var(--muted)}
+  .empty .big{font-family:"Shippori Mincho",serif;font-size:22px;color:var(--ink);margin-bottom:10px}
+
+  .sources{margin-top:38px;padding-top:30px;border-top:3px double var(--line)}
+  .sources h2{font-family:"Shippori Mincho",serif;font-weight:600;font-size:21px;margin-bottom:8px}
+  .sources .note{font-size:13px;color:var(--muted);max-width:42em;line-height:1.75;margin-bottom:22px}
+  .source-link{display:flex;align-items:center;gap:14px;padding:16px 2px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+  .source-link:first-of-type{border-top:1px solid var(--line)}
+  .source-link .nm{font-weight:700;font-size:15px;display:block}
+  .source-link .ds{font-size:12px;color:var(--muted);margin-top:3px;display:block;line-height:1.5}
+  .source-link .arrow{margin-left:auto;color:var(--muted);font-size:18px;transition:transform .2s,color .2s}
+  .source-link:hover .nm,.source-link:focus-visible .nm{color:var(--accent)}
+  .source-link:hover .arrow,.source-link:focus-visible .arrow{transform:translateX(4px);color:var(--accent)}
+  .source-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+
+  footer{border-top:1px solid var(--line);margin-top:40px;padding:24px 0 60px;font-size:12px;color:var(--muted);letter-spacing:.04em}
+  footer code{background:var(--surface);padding:1px 6px;border-radius:3px;border:1px solid var(--line)}
+
+  @media (max-width:560px){
+    .masthead{padding:40px 0 22px}
+    .item{gap:14px;padding:18px 0}
+    .thumb{flex-basis:96px;width:96px}
+    .name{font-size:17px}
+    .controls .wrap{gap:12px 16px}
+    .search{max-width:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="wrap">
+      <svg class="roofline" viewBox="0 0 340 34" aria-hidden="true" preserveAspectRatio="xMidYMax meet">
+        <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M4 26 L170 6 L336 26" />
+          <path d="M28 27 L312 27" stroke-width="1" opacity=".5"/>
+        </g>
+      </svg>
+      <h1 class="title">ひらや探し</h1>
+      <p class="lede">埼玉と宇都宮（栃木）の、中古・空き家の平屋を集めた個人用の一覧。物件サイト・空き家バンク・物件ファンを定期巡回して、新しく出たものを上に並べています。気が向いたときにのぞいてください。</p>
+      <div class="meta">
+        <span><b id="count">—</b> 件</span>
+        <span>最終更新 <b id="updated">—</b></span>
+        <span id="newcount"></span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="controls" aria-label="絞り込み">
+    <div class="wrap">
+      <div class="group" role="group" aria-label="エリア">
+        <span class="lbl">エリア</span>
+        <div class="pills" id="area-pills">
+          <button class="pill" data-area="all" aria-pressed="true">すべて</button>
+          <button class="pill" data-area="埼玉" aria-pressed="false">埼玉</button>
+          <button class="pill" data-area="宇都宮・栃木" aria-pressed="false">宇都宮・栃木</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="lbl">並び</span>
+        <select id="sort" aria-label="並び順">
+          <option value="new">新着順</option>
+          <option value="price-asc">価格が安い順</option>
+          <option value="price-desc">価格が高い順</option>
+        </select>
+      </div>
+
+      <label class="check"><input type="checkbox" id="hiraya-only" /> 平屋のみ</label>
+
+      <div class="spacer"></div>
+      <input class="search" id="search" type="search" placeholder="キーワードで絞る" aria-label="キーワード検索" />
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="list" id="list" aria-live="polite"></div>
+
+    <section class="sources">
+      <h2>手動で見るソース</h2>
+      <p class="note">JavaScriptで動くサイトや大手ポータルは自動巡回が難しいので、ここから直接ひらいて眺めてください。埼玉では秩父地域と北部地域が、平屋・空き家が比較的多めです。</p>
+
+      <a class="source-link" href="https://chichibuakiyabank.com/property" target="_blank" rel="noopener">
+        <span><span class="nm">ちちぶ空き家バンク｜物件一覧</span><span class="ds">秩父市・横瀬・皆野・長瀞・小鹿野。古民家や中古住宅が中心で約80件</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="source-link" href="https://www.pref.saitama.lg.jp/a1107/akiyabanku.html" target="_blank" rel="noopener">
+        <span><span class="nm">埼玉県｜市町村空き家バンク 窓口一覧</span><span class="ds">県内40以上のバンクへの総合案内。地域ごとに各市町のページへ飛べる</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="source-link" href="https://www.homes.co.jp/akiyabank/" target="_blank" rel="noopener">
+        <span><span class="nm">LIFULL HOME'S 空き家バンク</span><span class="ds">全国の自治体バンクを集約。エリアと種別で横断検索できる</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="source-link" href="https://www.akiya-athome.jp/" target="_blank" rel="noopener">
+        <span><span class="nm">at home 全国版 空き家・空き地バンク</span><span class="ds">もうひとつの全国版。掲載自治体はLIFULL版と一部異なる</span></span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap" style="padding:0">
+      巡回スクリプトが <code>data.json</code> を更新すると、この一覧も自動で入れ替わります。物件の最新状況は各掲載元でご確認ください。
+    </div>
+  </footer>
+
+<script>
+/* 本番では同階層の data.json を読み込む。読めない場合（プレビュー等）は
+   下のサンプルで描画する。crawler.py が data.json を書き出す。 */
+const SAMPLE_DATA = {
+  updated: "2026-06-13T22:10:00+09:00",
+  items: [
+    { id:"akiya-utsunomiya-0431", title:"宇都宮市郊外、畑つき平屋の空き家", url:"https://example.com/1",
+      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"宇都宮市空き家バンク",
+      price:null, note:"応相談", area_m2:78, layout:"4K", built:1981, hiraya:true,
+      first_seen:"2026-06-12T09:00:00+09:00", image:null },
+    { id:"suumo-saitama-99213", title:"さいたま市見沼区 平屋戸建て リノベ済", url:"https://example.com/2",
+      area:"埼玉", city:"埼玉県さいたま市見沼区", source:"SUUMO",
+      price:1980, area_m2:71, layout:"2LDK", built:1998, hiraya:true,
+      first_seen:"2026-06-11T14:30:00+09:00", image:null },
+    { id:"bukkenfan-7781", title:"静かな林のそばに建つ、低い屋根の住まい", url:"https://example.com/3",
+      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"物件ファン",
+      price:1450, area_m2:92, layout:"3DK", built:1975, hiraya:true,
+      first_seen:"2026-06-09T08:00:00+09:00", image:null },
+    { id:"akiya-chichibu-0220", title:"秩父郡 古民家風の平屋（要修繕）", url:"https://example.com/4",
+      area:"埼玉", city:"埼玉県秩父郡", source:"全国版空き家バンク",
+      price:380, area_m2:104, layout:"5DK", built:1968, hiraya:true,
+      first_seen:"2026-06-02T10:00:00+09:00", image:null },
+    { id:"homes-saitama-3120", title:"川越市 平屋＋庭、駐車2台", url:"https://example.com/5",
+      area:"埼玉", city:"埼玉県川越市", source:"LIFULL HOME'S",
+      price:2480, area_m2:83, layout:"3LDK", built:2005, hiraya:true,
+      first_seen:"2026-05-28T11:00:00+09:00", image:null },
+    { id:"akiya-tochigi-5512", title:"宇都宮市内 平屋（土地65坪・即入居可）", url:"https://example.com/6",
+      area:"宇都宮・栃木", city:"栃木県宇都宮市", source:"アットホーム",
+      price:990, area_m2:69, layout:"3K", built:1989, hiraya:true,
+      first_seen:"2026-05-20T16:00:00+09:00", image:null }
+  ]
+};
+
+const state = { area:"all", sort:"new", hiraya:false, q:"", data:{items:[],updated:null} };
+const list = document.getElementById("list");
+const WEEK = 7*24*60*60*1000;
+
+function isNew(item){
+  if(!item.first_seen) return false;
+  return (Date.now() - new Date(item.first_seen).getTime()) <= WEEK;
+}
+function fmtDate(iso, withTime){
+  if(!iso) return "—";
+  const d = new Date(iso);
+  const s = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+  if(!withTime) return s;
+  return `${s} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function priceHtml(item){
+  if(typeof item.price === "number")
+    return `<span class="price">${item.price.toLocaleString()}<span style="font-weight:500;font-size:.8em"> 万円</span></span>`;
+  return `<span class="price tba">${item.note || "価格応談"}</span>`;
+}
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+
+function apply(){
+  let xs = state.data.items.slice();
+  if(state.area!=="all") xs = xs.filter(i=>i.area===state.area);
+  if(state.hiraya) xs = xs.filter(i=>i.hiraya!==false);
+  if(state.q){
+    const q = state.q.toLowerCase();
+    xs = xs.filter(i=>[i.title,i.city,i.source,i.layout].some(v=>(v||"").toLowerCase().includes(q)));
+  }
+  const p = i => (typeof i.price==="number" ? i.price : Infinity);
+  if(state.sort==="new") xs.sort((a,b)=>new Date(b.first_seen)-new Date(a.first_seen));
+  else if(state.sort==="price-asc") xs.sort((a,b)=>p(a)-p(b));
+  else if(state.sort==="price-desc") xs.sort((a,b)=>(p(b)===Infinity?-1:p(b))-(p(a)===Infinity?-1:p(a)));
+  render(xs);
+}
+
+function render(xs){
+  if(!xs.length){
+    list.innerHTML = `<div class="empty"><div class="big">まだ何もありません</div>条件を変えるか、巡回スクリプトの実行を待ってみてください。</div>`;
+    return;
+  }
+  list.innerHTML = xs.map(i=>{
+    const thumb = i.image
+      ? `<div class="thumb"><img src="${esc(i.image)}" alt="" loading="lazy"></div>`
+      : `<div class="thumb ph"></div>`;
+    const facts = [
+      priceHtml(i),
+      i.area_m2 ? `${i.area_m2} ㎡` : null,
+      i.layout || null,
+      i.built ? `${i.built}年` : null,
+      `取得 ${fmtDate(i.first_seen,false)}`
+    ].filter(Boolean).map((f,idx)=> idx===0 ? f : `<span>${f}</span>`).join("");
+    return `<article class="item">
+      ${thumb}
+      <div class="body">
+        <div class="eyebrow">
+          <span>${esc(i.city||i.area)}</span><span class="dot"></span><span>${esc(i.source)}</span>
+          ${isNew(i)?'<span class="new">NEW</span>':''}
+        </div>
+        <h2 class="name"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title)}</a></h2>
+        <div class="data">${facts}</div>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function hydrate(data){
+  state.data = data;
+  document.getElementById("count").textContent = data.items.length;
+  document.getElementById("updated").textContent = fmtDate(data.updated,true);
+  const n = data.items.filter(isNew).length;
+  document.getElementById("newcount").innerHTML = n ? `<span class="new">うち ${n} 件が新着</span>` : "";
+  apply();
+}
+
+/* events */
+document.getElementById("area-pills").addEventListener("click",e=>{
+  const b = e.target.closest(".pill"); if(!b) return;
+  state.area = b.dataset.area;
+  [...e.currentTarget.children].forEach(p=>p.setAttribute("aria-pressed", p===b));
+  apply();
+});
+document.getElementById("sort").addEventListener("change",e=>{state.sort=e.target.value;apply();});
+document.getElementById("hiraya-only").addEventListener("change",e=>{state.hiraya=e.target.checked;apply();});
+document.getElementById("search").addEventListener("input",e=>{state.q=e.target.value.trim();apply();});
+
+/* load */
+fetch("./data.json",{cache:"no-store"})
+  .then(r=>{ if(!r.ok) throw 0; return r.json(); })
+  .then(hydrate)
+  .catch(()=>hydrate(SAMPLE_DATA));
+</script>
+</body>
+</html>
